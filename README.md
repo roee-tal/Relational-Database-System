@@ -36,7 +36,7 @@ public class StudentsController {
 
 }
 ```
-
+commit - hello world
 #### swagger
 ```
 		<dependency>
@@ -70,7 +70,8 @@ public class SwaggerConfig {
 }
 ```
 http://localhost:8080/swagger-ui.html#
-
+<br>
+commit - with swagger
 ### START DOCKER
 ```
 docker run -d -p 5432:5432 -v postgresdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=postgres postgres
@@ -92,7 +93,8 @@ services:
     privileged: true
 ```
 docker-compose up -d
-
+<br>
+commit - with docker compose
 #### Spring DATA
 ```
 		<dependency>
@@ -133,7 +135,7 @@ spring.jpa.hibernate.ddl-auto = update
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-Dates.java
+util/Dates.java
 ```java
 import org.joda.time.*;
 import org.springframework.lang.Nullable;
@@ -216,7 +218,7 @@ public static TimeZone TIME_ZONE = TimeZone.getTimeZone("Asia/Jerusalem");
 }
 ```
 
-student.java
+model/Student.java
 ```java
 @Entity
 @Table(name="student")
@@ -240,10 +242,21 @@ public class Student implements Serializable {
     @Max(800)
     private Integer satScore;
 
+    @Min(30)
+    @Max(110)
     private Double graduationScore;
+
+    @Length(max = 20)
+    private String phone;
+
+    @Length(max = 500)
+    private String profilePicture;
+
 }
 ```
 explain builder plugin
+<br>
+commit - with spring data
 
 #### repository and service
 
