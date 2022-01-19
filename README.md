@@ -563,6 +563,7 @@ StudentsController.java
     }
 
 ```
+commit - with FPS
 ## OneToMany grades
 apply fps.patch
 <br>
@@ -577,7 +578,6 @@ StudentOut.java
 ```
 StudentsController.java
 ```java
-    @RequestMapping(value = "", method = RequestMethod.GET)
     public ResponseEntity<PaginationAndList> search(@RequestParam(required = false) String fullName,
                                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromBirthDate,
                                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toBirthDate,
@@ -595,8 +595,10 @@ StudentsController.java
                 aFPSField().field("s.birth_date").alias("birthdate").build(),
                 aFPSField().field("s.sat_score").alias("satscore").build(),
                 aFPSField().field("s.graduation_score").alias("graduationscore").build(),
+                aFPSField().field("s.phone").alias("phone").build(),
+                aFPSField().field("s.profile_picture").alias("profilepicture").build(),
                 aFPSField().field("(select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ").alias("avgscore").build()
-                ))
+        ))
                 .from(List.of(" student s"))
                 .conditions(List.of(
                         aFPSCondition().condition("( lower(fullname) like :fullName )").parameterName("fullName").value(likeLowerOrNull(fullName)).build(),
@@ -610,6 +612,7 @@ StudentsController.java
                 .build().exec(em, om);
         return ResponseEntity.ok(res);
     }
+
 ```
 StudentSortField.java
 ```java
@@ -619,5 +622,7 @@ StudentSortField.java
     birthDate ("s.birth_date"),
     satScore ("s.at_score"),
     graduationScore ("s.graduation_score"),
+    phone ("s.phone"),
+    profilepicture ("s.profile_picture"),
     avgScore (" (select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ");
 ```
