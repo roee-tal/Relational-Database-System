@@ -54,6 +54,7 @@ public class StudentsController {
 
 
 ####
+config/SwaggerConfig.java
 ```java
 @Configuration
 @EnableSwagger2
