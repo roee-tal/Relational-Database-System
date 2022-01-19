@@ -268,12 +268,12 @@ commit - with spring data
 		</dependency>
 ```
 
-StudentRepository
+repo/StudentRepository.java
 ```java
 public interface StudentRepository extends CrudRepository<Student,Long> {
 }
 ```
-StudentService
+repo/StudentService.java
 ```java
 @Service
 public class StudentService {
@@ -300,7 +300,7 @@ public class StudentService {
 
 }
 ```
-StudentIn.java
+model/StudentIn.java
 ```java
 public class StudentIn implements Serializable {
 
@@ -314,10 +314,19 @@ public class StudentIn implements Serializable {
     @Max(800)
     private Integer satScore;
 
+    @Min(30)
+    @Max(110)
     private Double graduationScore;
 
+    @Length(max = 20)
+    private String phone;
+
+
     public Student toStudent() {
-        return aStudent().birthDate(Dates.atUtc(birthDate)).fullname(fullname).satScore(satScore).graduationScore(graduationScore).build();
+        return aStudent().birthDate(Dates.atUtc(birthDate)).fullname(fullname)
+                .satScore(satScore).graduationScore(graduationScore)
+                .phone(phone)
+                .build();
     }
 
     public void updateStudent(Student student) {
@@ -325,7 +334,9 @@ public class StudentIn implements Serializable {
         student.setFullname(fullname);
         student.setSatScore(satScore);
         student.setGraduationScore(graduationScore);
+        student.setPhone(phone);
     }
+
 }
 ```
 
@@ -336,9 +347,15 @@ Student.java
     public LocalDateTime calcCreatedAt() {
         return Dates.atLocalTime(createdAt);
     }
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonProperty("birthDate")
+    public LocalDateTime calcBirthDate() {
+        return Dates.atLocalTime(birthDate);
+    }
 ```
 
-StudentsController.java
+controller/StudentsController.java
 ```java
     @Autowired
     StudentService studentService;
@@ -382,6 +399,8 @@ StudentsController.java
         return new ResponseEntity<>("DELETED", HttpStatus.OK);
     }
 ```
+commit - with students CRUD + REST
+
 ###FPS - Filter Pagination Sort
 
 ####simple filter
