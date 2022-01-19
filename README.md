@@ -430,16 +430,18 @@ StudentController.java
 ####FPS
 apply fps.path
 <br>
-StudentOut:
+model/StudentOut:
 ```java
 @Entity
 @SqlResultSetMapping(name = "StudentOut")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StudentOut {
 
+    @Id
     private Long id;
 
     private Date createdat;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonProperty("createdat")
     public LocalDateTime calcCreatedAt() {
@@ -448,6 +450,7 @@ public class StudentOut {
 
     private String fullname;
     private Date birthdate;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonProperty("birthdate")
     public LocalDateTime calcBirthDate() {
@@ -457,15 +460,30 @@ public class StudentOut {
     private Integer satscore;
     private Double graduationscore;
 
+    private String phone;
+    private String profilepicture;
+
+    public Integer getSatScore() {
+        return satscore;
+    }
+
+    public Double getGraduationScore() {
+        return graduationscore;
+    }
+
     public Date getCreatedat() {
         return createdat;
+    }
+
+    public String getFullname() {
+        return fullname;
     }
 
     public Date getBirthdate() {
         return birthdate;
     }
 
-    @Id
+
     public Long getId() {
         return id;
     }
@@ -474,9 +492,18 @@ public class StudentOut {
         this.id = id;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getProfilePicture() {
+        return profilepicture;
+    }
+}
+
 ```
 
-StudentSortField.java
+model/StudentSortField.java
 ```java
 public enum StudentSortField {
     id("id") ,
@@ -484,7 +511,9 @@ public enum StudentSortField {
     fullName ("fullname"),
     birthDate ("birth_date"),
     satScore ("sat_score"),
-    graduationScore ("graduation_score");
+    graduationScore ("graduation_score"),
+    phone ("phone"),
+    profilepicture ("profile_picture");
 
     public final String fieldName;
     private StudentSortField(String fieldName) {
@@ -516,8 +545,10 @@ StudentsController.java
                 aFPSField().field("fullname").alias("fullname").build(),
                 aFPSField().field("birth_date").alias("birthdate").build(),
                 aFPSField().field("sat_score").alias("satscore").build(),
-                aFPSField().field("graduation_score").alias("graduationscore").build()
-                ))
+                aFPSField().field("graduation_score").alias("graduationscore").build(),
+                aFPSField().field("phone").alias("phone").build(),
+                aFPSField().field("profile_picture").alias("profilepicture").build()
+        ))
                 .from(List.of(" student s"))
                 .conditions(List.of(
                         aFPSCondition().condition("( lower(fullname) like :fullName )").parameterName("fullName").value(likeLowerOrNull(fullName)).build(),
@@ -530,6 +561,7 @@ StudentsController.java
                 .build().exec(em, om);
         return ResponseEntity.ok(res);
     }
+
 ```
 ## OneToMany grades
 apply fps.patch
