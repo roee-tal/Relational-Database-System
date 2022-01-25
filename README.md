@@ -564,7 +564,7 @@ StudentsController.java
 
 ```
 commit - with FPS
-## OneToMany grades
+### OneToMany grades
 apply fps.patch
 <br>
 Student.java
@@ -626,3 +626,60 @@ StudentSortField.java
     profilepicture ("s.profile_picture"),
     avgScore (" (select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ");
 ```
+commit - with one to many
+
+### Files & Presigned link
+
+```
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>1.11.908</version>
+		</dependency>
+```
+
+application.properies
+```
+amazon.aws.accesskey=AKIA6PS436XZW5V5FE5P
+amazon.aws.secretkey=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
+bucket.url=files.handson.academy
+```
+
+apply patch awsFileService
+<br>
+
+model/StudentOut.java
+```java
+    public static StudentOut of(Student student, AWSService awsService) {
+        StudentOut res = new StudentOut();
+        res.id = student.getId();
+        res.createdat = student.getCreatedAt();
+        res.fullname = student.getFullname();
+        res.birthdate = student.getBirthDate();
+        res.satscore = student.getSatScore();
+        res.graduationscore = student.getGraduationScore();
+        res.phone = student.getPhone();
+        res.profilepicture = awsService.generateLink(student.getProfilePicture());
+        res.avgscore = null;
+        return res;
+    }
+```
+controller/StudentsController.java
+```java
+    @RequestMapping(value = "/{id}/image", method = RequestMethod.PUT)
+    public ResponseEntity<?> uploadStudentImage(@PathVariable Long id,  @RequestParam("image") MultipartFile image)
+    {
+        Optional<Student> dbStudent = studentService.findById(id);
+        if (dbStudent.isEmpty()) throw new RuntimeException("Student with id: " + id + " not found");
+        String bucketPath = "apps/niv/student-" +  id + ".png" ;
+        awsService.putInBucket(image, bucketPath);
+        dbStudent.get().setProfilePicture(bucketPath);
+        Student updatedStudent = studentService.save(dbStudent.get());
+        return new ResponseEntity<>(StudentOut.of(updatedStudent, awsService) , HttpStatus.OK);
+    }
+```
+make user of student.of in get and put
+<br>
+commit - AWS S3 & presigned link
+
+
