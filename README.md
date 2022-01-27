@@ -933,7 +933,7 @@ application.properties
 ```
 spring.datasource.url=jdbc:postgresql://postgres:5432/postgres
 ```
-sudo vi /etc/hosts (add 127.0.0.1 postgres
+sudo vi /etc/hosts (add 127.0.0.1 postgres, 127.0.0.1 appserver
 <br>
 apply path test_docker.patch
 <br>
@@ -954,3 +954,18 @@ docker push docker.io/basic-spring:niv-001
 test coverage
 <br>
 commit - with tests & dockrize
+
+### POSTMAN & NEWMAN
+apply patch postman_newman.patch
+<br>
+import into postman
+<br>
+docker-compose -f docker-compose-ci.yml up -d --force-recreate --build
+<br>
+docker-compose -f docker-compose-ci.yml run wait -c server:8080 -t 120
+<br>
+docker exec  basicspring_newman_1 newman run STUDENTS_TEST.postman_collection.json --reporters cli,junit,htmlextra --reporter-junit-export "newman/report.xml" --reporter-htmlextra-export "newman/report.html" 
+<br>
+check test/newman/report.html
+
+commit - with postman newman
