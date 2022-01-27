@@ -781,7 +781,7 @@ controller/studentsController.java
             IteratorUtils.toList(studentService.all().iterator())
                     .parallelStream()
                     .map(student -> student.getPhone())
-                    .filter(phone -> phone != null)
+                    .filter(phone -> !isEmpty(phone))
                     .forEach(phone -> smsService.send(text, phone));
         }).start();
         return new ResponseEntity<>("SENDING", HttpStatus.OK);
@@ -898,78 +898,59 @@ commit - with JWT
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 ```
-/util/GlobalDefaultExceptionHandler.java
-```java
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
+apply patch -> exception_handling.patch
+<br>
 
-import javax.servlet.http.HttpServletRequest;
-import java.nio.file.AccessDeniedException;
+in studentsController change RuntimeException to HandsonException
 
-
-@ControllerAdvice
-class GlobalDefaultExceptionHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalDefaultExceptionHandler.class);
-
-    @Autowired
-    ObjectMapper om;
-
-    @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<String> defaultErrorHandler(HttpServletRequest req, Exception e) throws Exception {
-        logger.error("exception:" + e.getMessage() + ", class:" + e.getClass().getName());
-        // If the exception is annotated with @ResponseStatus rethrow it and let
-        // the framework handle it - like the OrderNotFoundException example
-        // at the start of this post.
-        // AnnotationUtils is a Spring Framework utility class.
-        if (AnnotationUtils.findAnnotation
-                (e.getClass(), ResponseStatus.class) != null) {
-            logger.error(e.getMessage(), e);
-            throw e;
-        }
-        if (e instanceof DuplicateKeyException) {
-            return new ResponseEntity<>(anErrorResponse("Duplicate Id"), HttpStatus.CONFLICT);
-        } else if (e instanceof EmptyResultDataAccessException) {
-            return new ResponseEntity<>(anErrorResponse("Not Found"), HttpStatus.NOT_FOUND);
-            // we raise runtime exceptions for business issues.
-        } else if (e instanceof MissingServletRequestParameterException) {
-            String res = anErrorResponse(e.getMessage());
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        } else if (e instanceof AccessDeniedException) {
-            String res = anErrorResponse(e.getMessage());
-            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
-        } else if (e instanceof PreseeException) {
-            String res = anErrorResponse(e.getMessage());
-            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
-        }
-        logger.error(e.getMessage(), e);
-        // Otherwise it is unexpected
-        return new ResponseEntity<>(anErrorResponse("unexpected problem"), HttpStatus.CONFLICT);
-    }
-
-    private String anErrorResponse(String s) {
-        RestErrorMessage em = RestErrorMessage.RestErrorMessageBuilder.aRestErrorMessage().error(s).build();
-        String res = null;
-        try {
-            res = om.writeValueAsString(em);
-            return res;
-        } catch (JsonProcessingException e) {
-            logger.error(e.getMessage(), e);
-            return "";
-        }
-    }
-}
-```
+<br>
 commit - with actuator & global exception
+### Test & Dockerize
+```java
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.200</version>
+			<scope>test</scope>
+		</dependency>
+```
+
+application.properties
+```
+spring.datasource.url=jdbc:postgresql://postgres:5432/postgres
+```
+sudo vi /etc/hosts (add 127.0.0.1 postgres
+<br>
+apply path test_docker.patch
+<br>
+docker build . -t basic-spring
+<br>
+docker-compose -f docker-compose-local.yml up
+<br>
+docker login
+<br>
+nivitzhaky
+<br>
+Jul201789#
+<br>
+docker tag basic-spring  docker.io/basic-spring:niv-001
+<br>
+docker push docker.io/basic-spring:niv-001
+<br>
+test coverage
+<br>
+commit - with tests & dockrize
