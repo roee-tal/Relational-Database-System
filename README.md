@@ -1,23 +1,8 @@
 # basicSql
 
-https://git-scm.com/downloads
-####create github account
-https://www.youtube.com/watch?v=QUtk-Uuq9nE&ab_channel=MicroTalks
-https://www.youtube.com/watch?v=WgZIv5HI44o&ab_channel=SyntaxByte
-<br>or<br>
-https://www.youtube.com/watch?v=xIlFWsV3PAE&ab_channel=TechTalkDebu
-
-https://github.com/settings/keys
-<br>
-clone me:
-```
-git clone https://github.com/handson-academy/basicSql.git
-```
-https://www.docker.com/products/docker-desktop
-https://www.jetbrains.com/idea/download/#section=mac
-https://tableplus.com/download
-
-explain git + shelf
+#### JIRA
+when you open a branch, make sure that IT IS ON A REPOSITORY WITH YOUR NAME IN IT.<br>
+if you don't see your branch its because you opened it on the wrong repository.<br>
 
 https://start.spring.io/  -> spring boot - 2.5.2
 
@@ -78,7 +63,13 @@ docker run -d -p 5432:5432 -v postgresdata:/var/lib/postgresql/data -e POSTGRES_
 docker ps
 docker logs [containerid]
 ```
-
+NOTE: IF TABLEPLUS IS NOT CONNECTING: run from in terminal 
+```
+~/Downloads/tableplus_work.sh  
+```
+and password is sample123
+```
+docker-compose.yml
 ```
 version: "3"
 services:
@@ -91,6 +82,8 @@ services:
     volumes:
       - ./postgresdata:/var/lib/postgresql/data
     privileged: true
+```
+REMEMBER TO KILL THE DOCKER THAT WAS RUNNING BEFORE AS IT IS USING THE SAME PORT (5432) <br>
 ```
 docker-compose up -d
 <br>
@@ -120,8 +113,8 @@ commit - with docker compose
 			<version>2.10.13</version>
 		</dependency>
 ```
-
-
+try to run app, will not load
+<br>
 application.properties:
 ```
 spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
@@ -134,6 +127,8 @@ spring.jpa.show-sql = true
 spring.jpa.hibernate.ddl-auto = update
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
+app will run - still no tables
+<br>
 
 util/Dates.java
 ```java
@@ -148,8 +143,8 @@ import java.util.Objects;
 import java.util.TimeZone;
 
 public class Dates {
-public static SimpleDateFormat shortDate = new SimpleDateFormat("YYYY-MM-dd");
-public static TimeZone TIME_ZONE = TimeZone.getTimeZone("Asia/Jerusalem");
+    public static SimpleDateFormat shortDate = new SimpleDateFormat("YYYY-MM-dd");
+    public static TimeZone TIME_ZONE = TimeZone.getTimeZone("Asia/Jerusalem");
 
     public Dates() {
     }
@@ -323,7 +318,7 @@ public class StudentIn implements Serializable {
 
 
     public Student toStudent() {
-        return aStudent().birthDate(Dates.atUtc(birthDate)).fullname(fullname)
+        return aStudent().createdAt(Dates.nowUTC()).birthDate(Dates.atUtc(birthDate)).fullname(fullname)
                 .satScore(satScore).graduationScore(graduationScore)
                 .phone(phone)
                 .build();
@@ -343,16 +338,16 @@ public class StudentIn implements Serializable {
 Student.java
 ```java
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    @JsonProperty("createdAt")
-    public LocalDateTime calcCreatedAt() {
+@JsonProperty("createdAt")
+public LocalDateTime calcCreatedAt() {
         return Dates.atLocalTime(createdAt);
-    }
+        }
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonProperty("birthDate")
-    public LocalDateTime calcBirthDate() {
+@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+@JsonProperty("birthDate")
+public LocalDateTime calcBirthDate() {
         return Dates.atLocalTime(birthDate);
-    }
+        }
 ```
 
 controller/StudentsController.java
@@ -360,44 +355,44 @@ controller/StudentsController.java
     @Autowired
     StudentService studentService;
 
-    @RequestMapping(value = "", method = RequestMethod.GET)
-    public ResponseEntity<?> getAllStudents()
-    {
+@RequestMapping(value = "", method = RequestMethod.GET)
+public ResponseEntity<?> getAllStudents()
+        {
         return new ResponseEntity<>(studentService.all(), HttpStatus.OK);
-    }
+        }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<?> getOneStudent(@PathVariable Long id)
-    {
+@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+public ResponseEntity<?> getOneStudent(@PathVariable Long id)
+        {
         return new ResponseEntity<>(studentService.findById(id), HttpStatus.OK);
-    }
+        }
 
-    @RequestMapping(value = "", method = RequestMethod.POST)
-    public ResponseEntity<?> insertStudent(@RequestBody StudentIn studentIn)
-    {
+@RequestMapping(value = "", method = RequestMethod.POST)
+public ResponseEntity<?> insertStudent(@RequestBody StudentIn studentIn)
+        {
         Student student = studentIn.toStudent();
         student = studentService.save(student);
         return new ResponseEntity<>(student, HttpStatus.OK);
-    }
+        }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody StudentIn student)
-    {
+@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody StudentIn student)
+        {
         Optional<Student> dbStudent = studentService.findById(id);
         if (dbStudent.isEmpty()) throw new RuntimeException("Student with id: " + id + " not found");
         student.updateStudent(dbStudent.get());
         Student updatedStudent = studentService.save(dbStudent.get());
         return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
-    }
+        }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<?> deleteStudent(@PathVariable Long id)
-    {
+@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+public ResponseEntity<?> deleteStudent(@PathVariable Long id)
+        {
         Optional<Student> dbStudent = studentService.findById(id);
         if (dbStudent.isEmpty()) throw new RuntimeException("Student with id: " + id + " not found");
         studentService.delete(dbStudent.get());
         return new ResponseEntity<>("DELETED", HttpStatus.OK);
-    }
+        }
 ```
 commit - with students CRUD + REST
 
@@ -414,21 +409,21 @@ StudentService.java
 ```java
     public List<Student> getStudentWithSatHigherThan(Integer sat) {
         return repository.findAllBySatScoreGreaterThan(sat);
-    }
+        }
 ```
 
 
 StudentController.java
 ```java
     @RequestMapping(value = "/highSat", method = RequestMethod.GET)
-    public ResponseEntity<?> getHighSatStudents(@RequestParam Integer sat)
-    {
+public ResponseEntity<?> getHighSatStudents(@RequestParam Integer sat)
+        {
         return new ResponseEntity<>(studentService.getStudentWithSatHigherThan(sat), HttpStatus.OK);
-    }
+        }
 ```
 
 ####FPS
-apply fps.path
+apply fps.patch
 <br>
 model/StudentOut:
 ```java
@@ -526,51 +521,51 @@ StudentsController.java
     @Autowired
     EntityManager em;
 
-    @Autowired
+@Autowired
     ObjectMapper om;
 
-    @RequestMapping(value = "", method = RequestMethod.GET)
-    public ResponseEntity<PaginationAndList> search(@RequestParam(required = false) String fullName,
-                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromBirthDate,
-                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toBirthDate,
-                                                    @RequestParam(required = false) Integer fromSatScore,
-                                                    @RequestParam(required = false) Integer toSatScore,
-                                                    @RequestParam(defaultValue = "1") Integer page,
-                                                    @RequestParam(defaultValue = "50") @Min(1) Integer count,
-                                                    @RequestParam(defaultValue = "id") StudentSortField sort, @RequestParam(defaultValue = "asc") SortDirection sortDirection) throws JsonProcessingException {
+@RequestMapping(value = "", method = RequestMethod.GET)
+public ResponseEntity<PaginationAndList> search(@RequestParam(required = false) String fullName,
+@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromBirthDate,
+@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toBirthDate,
+@RequestParam(required = false) Integer fromSatScore,
+@RequestParam(required = false) Integer toSatScore,
+@RequestParam(defaultValue = "1") Integer page,
+@RequestParam(defaultValue = "50") @Min(1) Integer count,
+@RequestParam(defaultValue = "id") StudentSortField sort, @RequestParam(defaultValue = "asc") SortDirection sortDirection) throws JsonProcessingException {
 
         var res =aFPS().select(List.of(
-                aFPSField().field("id").alias("id").build(),
-                aFPSField().field("created_at").alias("createdat").build(),
-                aFPSField().field("fullname").alias("fullname").build(),
-                aFPSField().field("birth_date").alias("birthdate").build(),
-                aFPSField().field("sat_score").alias("satscore").build(),
-                aFPSField().field("graduation_score").alias("graduationscore").build(),
-                aFPSField().field("phone").alias("phone").build(),
-                aFPSField().field("profile_picture").alias("profilepicture").build()
+        aFPSField().field("id").alias("id").build(),
+        aFPSField().field("created_at").alias("createdat").build(),
+        aFPSField().field("fullname").alias("fullname").build(),
+        aFPSField().field("birth_date").alias("birthdate").build(),
+        aFPSField().field("sat_score").alias("satscore").build(),
+        aFPSField().field("graduation_score").alias("graduationscore").build(),
+        aFPSField().field("phone").alias("phone").build(),
+        aFPSField().field("profile_picture").alias("profilepicture").build()
         ))
-                .from(List.of(" student s"))
-                .conditions(List.of(
-                        aFPSCondition().condition("( lower(fullname) like :fullName )").parameterName("fullName").value(likeLowerOrNull(fullName)).build(),
-                        aFPSCondition().condition("( s.birth_Date >= :fromBirthDate )").parameterName("fromBirthDate").value(atUtc(fromBirthDate)).build(),
-                        aFPSCondition().condition("( s.birth_Date <= :toBirthDate )").parameterName("toBirthDate").value(atUtc(toBirthDate)).build(),
-                        aFPSCondition().condition("( sat_score >= :fromSatScore )").parameterName("fromSatScore").value(fromSatScore).build(),
-                        aFPSCondition().condition("( sat_score <= :toSatScore )").parameterName("toSatScore").value(toSatScore).build()
-                )).sortField(sort.fieldName).sortDirection(sortDirection).page(page).count(count)
-                .itemClass(StudentOut.class)
-                .build().exec(em, om);
+        .from(List.of(" student s"))
+        .conditions(List.of(
+        aFPSCondition().condition("( lower(fullname) like :fullName )").parameterName("fullName").value(likeLowerOrNull(fullName)).build(),
+        aFPSCondition().condition("( s.birth_Date >= :fromBirthDate )").parameterName("fromBirthDate").value(atUtc(fromBirthDate)).build(),
+        aFPSCondition().condition("( s.birth_Date <= :toBirthDate )").parameterName("toBirthDate").value(atUtc(toBirthDate)).build(),
+        aFPSCondition().condition("( sat_score >= :fromSatScore )").parameterName("fromSatScore").value(fromSatScore).build(),
+        aFPSCondition().condition("( sat_score <= :toSatScore )").parameterName("toSatScore").value(toSatScore).build()
+        )).sortField(sort.fieldName).sortDirection(sortDirection).page(page).count(count)
+        .itemClass(StudentOut.class)
+        .build().exec(em, om);
         return ResponseEntity.ok(res);
-    }
+        }
 
 ```
 commit - with FPS
 ### OneToMany grades
-apply fps.patch
+apply one_to_many_grades.patch
 <br>
 Student.java
 ```java
     @OneToMany(mappedBy = "student", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-    private Collection<StudentGrade> studentGrades = new ArrayList<>();
+private Collection<StudentGrade> studentGrades = new ArrayList<>();
 ```
 StudentOut.java
 ```java
@@ -579,52 +574,52 @@ StudentOut.java
 StudentsController.java
 ```java
     public ResponseEntity<PaginationAndList> search(@RequestParam(required = false) String fullName,
-                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromBirthDate,
-                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toBirthDate,
-                                                    @RequestParam(required = false) Integer fromSatScore,
-                                                    @RequestParam(required = false) Integer toSatScore,
-                                                    @RequestParam(required = false) Integer fromAvgScore,
-                                                    @RequestParam(defaultValue = "1") Integer page,
-                                                    @RequestParam(defaultValue = "50") @Min(1) Integer count,
-                                                    @RequestParam(defaultValue = "id") StudentSortField sort, @RequestParam(defaultValue = "asc") SortDirection sortDirection) throws JsonProcessingException {
+@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromBirthDate,
+@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toBirthDate,
+@RequestParam(required = false) Integer fromSatScore,
+@RequestParam(required = false) Integer toSatScore,
+@RequestParam(required = false) Integer fromAvgScore,
+@RequestParam(defaultValue = "1") Integer page,
+@RequestParam(defaultValue = "50") @Min(1) Integer count,
+@RequestParam(defaultValue = "id") StudentSortField sort, @RequestParam(defaultValue = "asc") SortDirection sortDirection) throws JsonProcessingException {
 
         var res =aFPS().select(List.of(
-                aFPSField().field("s.id").alias("id").build(),
-                aFPSField().field("s.created_at").alias("createdat").build(),
-                aFPSField().field("s.fullname").alias("fullname").build(),
-                aFPSField().field("s.birth_date").alias("birthdate").build(),
-                aFPSField().field("s.sat_score").alias("satscore").build(),
-                aFPSField().field("s.graduation_score").alias("graduationscore").build(),
-                aFPSField().field("s.phone").alias("phone").build(),
-                aFPSField().field("s.profile_picture").alias("profilepicture").build(),
-                aFPSField().field("(select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ").alias("avgscore").build()
+        aFPSField().field("s.id").alias("id").build(),
+        aFPSField().field("s.created_at").alias("createdat").build(),
+        aFPSField().field("s.fullname").alias("fullname").build(),
+        aFPSField().field("s.birth_date").alias("birthdate").build(),
+        aFPSField().field("s.sat_score").alias("satscore").build(),
+        aFPSField().field("s.graduation_score").alias("graduationscore").build(),
+        aFPSField().field("s.phone").alias("phone").build(),
+        aFPSField().field("s.profile_picture").alias("profilepicture").build(),
+        aFPSField().field("(select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ").alias("avgscore").build()
         ))
-                .from(List.of(" student s"))
-                .conditions(List.of(
-                        aFPSCondition().condition("( lower(fullname) like :fullName )").parameterName("fullName").value(likeLowerOrNull(fullName)).build(),
-                        aFPSCondition().condition("( s.birth_Date >= :fromBirthDate )").parameterName("fromBirthDate").value(atUtc(fromBirthDate)).build(),
-                        aFPSCondition().condition("( s.birth_Date <= :toBirthDate )").parameterName("toBirthDate").value(atUtc(toBirthDate)).build(),
-                        aFPSCondition().condition("( sat_score >= :fromSatScore )").parameterName("fromSatScore").value(fromSatScore).build(),
-                        aFPSCondition().condition("( sat_score <= :toSatScore )").parameterName("toSatScore").value(toSatScore).build(),
-                        aFPSCondition().condition("( (select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) >= :fromAvgScore )").parameterName("fromAvgScore").value(fromAvgScore).build()
-                )).sortField(sort.fieldName).sortDirection(sortDirection).page(page).count(count)
-                .itemClass(StudentOut.class)
-                .build().exec(em, om);
+        .from(List.of(" student s"))
+        .conditions(List.of(
+        aFPSCondition().condition("( lower(fullname) like :fullName )").parameterName("fullName").value(likeLowerOrNull(fullName)).build(),
+        aFPSCondition().condition("( s.birth_Date >= :fromBirthDate )").parameterName("fromBirthDate").value(atUtc(fromBirthDate)).build(),
+        aFPSCondition().condition("( s.birth_Date <= :toBirthDate )").parameterName("toBirthDate").value(atUtc(toBirthDate)).build(),
+        aFPSCondition().condition("( sat_score >= :fromSatScore )").parameterName("fromSatScore").value(fromSatScore).build(),
+        aFPSCondition().condition("( sat_score <= :toSatScore )").parameterName("toSatScore").value(toSatScore).build(),
+        aFPSCondition().condition("( (select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) >= :fromAvgScore )").parameterName("fromAvgScore").value(fromAvgScore).build()
+        )).sortField(sort.fieldName).sortDirection(sortDirection).page(page).count(count)
+        .itemClass(StudentOut.class)
+        .build().exec(em, om);
         return ResponseEntity.ok(res);
-    }
+        }
 
 ```
 StudentSortField.java
 ```java
     id("s.id") ,
-    createdAt ("s.created_at"),
-    fullName ("s.fullname"),
-    birthDate ("s.birth_date"),
-    satScore ("s.at_score"),
-    graduationScore ("s.graduation_score"),
-    phone ("s.phone"),
-    profilepicture ("s.profile_picture"),
-    avgScore (" (select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ");
+        createdAt ("s.created_at"),
+        fullName ("s.fullname"),
+        birthDate ("s.birth_date"),
+        satScore ("s.at_score"),
+        graduationScore ("s.graduation_score"),
+        phone ("s.phone"),
+        profilepicture ("s.profile_picture"),
+        avgScore (" (select avg(sg.course_score) from  student_grade sg where sg.student_id = s.id ) ");
 ```
 commit - with one to many
 
@@ -638,12 +633,18 @@ aws account: 995553441267
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.11.908</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.11.0</version>
+		</dependency>
 ```
 
 application.properies
 ```
-amazon.aws.accesskey=AKIA6PS436XZW5V5FE5P
-amazon.aws.secretkey=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
+amazon.aws.accesskey=AKIA6PS436XZZSSPURH2
+amazon.aws.secretkey=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
 bucket.url=files.handson.academy
 ```
 
@@ -664,13 +665,13 @@ model/StudentOut.java
         res.profilepicture = awsService.generateLink(student.getProfilePicture());
         res.avgscore = null;
         return res;
-    }
+        }
 ```
 controller/StudentsController.java
 ```java
     @RequestMapping(value = "/{id}/image", method = RequestMethod.PUT)
-    public ResponseEntity<?> uploadStudentImage(@PathVariable Long id,  @RequestParam("image") MultipartFile image)
-    {
+public ResponseEntity<?> uploadStudentImage(@PathVariable Long id,  @RequestParam("image") MultipartFile image)
+        {
         Optional<Student> dbStudent = studentService.findById(id);
         if (dbStudent.isEmpty()) throw new RuntimeException("Student with id: " + id + " not found");
         String bucketPath = "apps/niv/student-" +  id + ".png" ;
@@ -678,7 +679,7 @@ controller/StudentsController.java
         dbStudent.get().setProfilePicture(bucketPath);
         Student updatedStudent = studentService.save(dbStudent.get());
         return new ResponseEntity<>(StudentOut.of(updatedStudent, awsService) , HttpStatus.OK);
-    }
+        }
 ```
 make user of student.of in get and put
 <br>
@@ -774,22 +775,152 @@ public class SmsService {
 ```
 controller/studentsController.java
 ```java
-    @RequestMapping(value = "/sms/all", method = RequestMethod.POST)
-    public ResponseEntity<?> smsAll(@RequestParam String text)
-    {
+    @Autowired
+    SmsService smsService;
+
+@RequestMapping(value = "/sms/all", method = RequestMethod.POST)
+public ResponseEntity<?> smsAll(@RequestParam String text)
+        {
         new Thread(()-> {
-            IteratorUtils.toList(studentService.all().iterator())
-                    .parallelStream()
-                    .map(student -> student.getPhone())
-                    .filter(phone -> !isEmpty(phone))
-                    .forEach(phone -> smsService.send(text, phone));
+        IteratorUtils.toList(studentService.all().iterator())
+        .parallelStream()
+        .map(student -> student.getPhone())
+        .filter(phone -> !isEmpty(phone))
+        .forEach(phone -> smsService.send(text, phone));
         }).start();
         return new ResponseEntity<>("SENDING", HttpStatus.OK);
-    }
+        }
 ```
 check: https://www.sms4free.co.il/SMSLog.html
 
 commit - Async -> SMS integration
+### Microservices
+copy to basicSpring-ms <br>
+use notepad to edit pom.xml add -ms to name and artifactId
+<br>
+model/MessageAndPhones.java
+```java
+public class MessageAndPhones {
+    String message;
+    List<String> phones;
+
+    public String getMessage() {
+        return message;
+    }
+
+    public List<String> getPhones() {
+        return phones;
+    }
+
+    public MessageAndPhones(String message, List<String> phones) {
+        this.message = message;
+        this.phones = phones;
+    }
+}
+```
+controller/SmsController.java
+```java
+@RestController
+@RequestMapping("/api")
+public class SmsController {
+
+    @Autowired
+    SmsService smsService;
+
+    @RequestMapping(value = "/sms", method = RequestMethod.POST)
+    public ResponseEntity<?> smsAll(@RequestBody MessageAndPhones messageAndPhones)
+    {
+        new Thread(()-> {
+            messageAndPhones.getPhones()
+                    .parallelStream()
+                    .forEach(phone -> smsService.send(messageAndPhones.getMessage(), phone));
+
+        }).start();
+        return new ResponseEntity<>("SENDING", HttpStatus.OK);
+    }
+}
+```
+#### call the ms
+config/RestTemplateConfig.java
+```java
+@Component
+public class RestTemplateConfig {
+
+    @Bean
+    @RequestScope
+    public RestTemplate getRestTemplate(HttpServletRequest inReq) {
+        final String authHeader =
+                inReq.getHeader(HttpHeaders.AUTHORIZATION);
+        final RestTemplate restTemplate = new RestTemplate();
+        if (authHeader != null && !authHeader.isEmpty()) {
+            restTemplate.getInterceptors().add(
+                    (outReq, bytes, clientHttpReqExec) -> {
+                        outReq.getHeaders().set(
+                                HttpHeaders.AUTHORIZATION, authHeader
+                        );
+                        return clientHttpReqExec.execute(outReq, bytes);
+                    });
+        }
+        return restTemplate;
+    }
+}
+```
+model/MessageAndPhones.java
+```java
+public class MessageAndPhones {
+    String message;
+    List<String> phones;
+
+    public String getMessage() {
+        return message;
+    }
+
+    public List<String> getPhones() {
+        return phones;
+    }
+
+    public MessageAndPhones(String message, List<String> phones) {
+        this.message = message;
+        this.phones = phones;
+    }
+}
+```
+application.properties
+```
+sms.ms.url=http://localhost:8081/
+```
+util/SmsService.java
+```java
+    @Value("${sms.ms.url}")
+    String SMS_MS_URL;
+    protected final Log logger = LogFactory.getLog(getClass());
+    OkHttpClient client = new OkHttpClient.Builder().build();
+
+    @Autowired
+    RestTemplate  rTemplate;
+
+    public String sendSms(MessageAndPhones messageAndPhones) {
+        return rTemplate.postForObject(SMS_MS_URL + "/api/sms/", messageAndPhones, String.class);
+    }
+```
+controller/StudentsController.java
+```java
+    @RequestMapping(value = "/sms/all", method = RequestMethod.POST)
+    public ResponseEntity<?> smsAll(@RequestParam String text)
+    {
+        List<String> phones =
+            IteratorUtils.toList(studentService.all().iterator())
+                    .parallelStream()
+                    .map(student -> student.getPhone())
+                    .filter(phone -> !isEmpty(phone))
+                    .collect(Collectors.toList());
+        return new ResponseEntity<>(smsService.send(new MessageAndPhones(text, phones)), HttpStatus.OK);
+    }
+```
+StudentsControllerTest.java
+```java
+        verify(smsService, atLeastOnce()).send(any());
+```
 ### JWT
 ```
 		<dependency>
@@ -901,10 +1032,8 @@ commit - with JWT
 apply patch -> exception_handling.patch
 <br>
 
-in studentsController change RuntimeException to HandsonException
-
-<br>
-commit - with actuator & global exception
+in studentsController change RuntimeException to HandsonException<br>
+commit - with actuator & global exception <br>
 ### Test & Dockerize
 ```java
 
@@ -939,7 +1068,7 @@ apply path test_docker.patch
 <br>
 docker build . -t basic-spring
 <br>
-docker-compose -f docker-compose-local.yml up
+docker-compose -f docker-compose-local.yml up --force-recreate
 <br>
 docker login
 <br>
@@ -947,9 +1076,11 @@ nivitzhaky
 <br>
 Jul201789#
 <br>
-docker tag basic-spring  docker.io/basic-spring:niv-001
+docker tag basic-spring  nivitzhaky/basic-spring:niv-001
 <br>
-docker push docker.io/basic-spring:niv-001
+docker push nivitzhaky/basic-spring:niv-001
+<br>
+in docker-comopse-local.yml change image nivitzhaky/basic-spring:niv-001
 <br>
 test coverage
 <br>
@@ -964,8 +1095,79 @@ docker-compose -f docker-compose-ci.yml up -d --force-recreate --build
 <br>
 docker-compose -f docker-compose-ci.yml run wait -c server:8080 -t 120
 <br>
-docker exec  basicspring_newman_1 newman run STUDENTS_TEST.postman_collection.json --reporters cli,junit,htmlextra --reporter-junit-export "newman/report.xml" --reporter-htmlextra-export "newman/report.html" 
+docker exec  niv-basicspring_newman_1 newman run STUDENTS_TEST.postman_collection.json --reporters cli,junit,htmlextra --reporter-junit-export "newman/report.xml" --reporter-htmlextra-export "newman/report.html" 
 <br>
 check test/newman/report.html
 
 commit - with postman newman
+
+### Jenkins
+pull request
+http://ec2-3-125-50-55.eu-central-1.compute.amazonaws.com:8080/
+<br>
+user:student
+<br>
+password:student
+
+### EC2
+<br>
+docker login
+<br>
+<b>user:</b>hoacademy
+<br>
+<b>password:</b>Hands-On!
+
+```
+docker tag basic-spring  hoacademy/basic-spring:niv-001
+docker push hoacademy/basic-spring:niv-001
+```
+
+login to aws: https://995553441267.signin.aws.amazon.com/console
+<br>
+change pem permissions
+```
+chmod 400 ~/Downloads/ec2.pem
+
+sudo yum update -y
+sudo yum install -y docker
+sudo service docker start
+sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+```
+echo "
+version: \"3\"
+services:
+  appserver:
+    container_name: server
+    hostname: localhost
+    image: nivitzhaky/basic-spring:niv-001
+    ports:
+      - "8080:8080"
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+    - 5432:5432
+    volumes:
+      - ./postgresdata:/var/lib/postgresql/data
+    privileged: true
+" >>  docker-compose-aws.yml
+```
+sudo  /usr/local/bin/docker-compose -f docker-compose-aws.yml up -d
+<br>
+connect with:
+<br>
+http://[your machine]:8080/swagger-ui.html
+<br>
+<b>don't forget to terminate the machine</b>
+### openshift
+
+https://console-openshift-console.apps.cluster.oshift.xyz/
+<br>
+kubeadmin
+<br>
+xn4NF-MwGgM-CVEYe-RMneJ
+<br>
