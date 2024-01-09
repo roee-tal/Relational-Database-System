@@ -1076,9 +1076,9 @@ nivitzhaky
 <br>
 Jul201789#
 <br>
-docker tag basic-spring  nivitzhaky/basic-spring:niv-001
+docker tag basic-spring  roeetal979/basic-spring:roee-001
 <br>
-docker push nivitzhaky/basic-spring:niv-001
+docker push roeetal979/basic-spring:roee-001
 <br>
 in docker-comopse-local.yml change image nivitzhaky/basic-spring:niv-001
 <br>
